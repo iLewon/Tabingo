@@ -1,15 +1,47 @@
 package com.mobileexam.tabingo.model
 
-import androidx.annotation.DrawableRes
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-data class CharModel(
+@Serializable
+data class CharacterResponse(
+    val info: Info,
+    val results: List<Character>
+)
+
+@Serializable
+data class Info(
+    val count: Int,
+    val pages: Int,
+    val next: String?,
+    val prev: String?
+)
+
+@Serializable
+data class Character(
     val id: Int,
     val name: String,
     val status: String,
     val species: String,
     val type: String,
     val gender: String,
-    val origin: String,
-    val location: String,
-    @DrawableRes val imageRes: Int // Marking image as a drawable resource for clarity
+    val origin: Origin,
+    val location: Location,
+    @SerialName(value = "image")
+    val image: String,
+    val episode: List<String>,
+    val url: String,
+    val created: String
+)
+
+@Serializable
+data class Origin(
+    val name: String,
+    val url: String
+)
+
+@Serializable
+data class Location(
+    val name: String,
+    val url: String
 )

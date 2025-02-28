@@ -1,11 +1,11 @@
-package com.mobileexam.tabingo.functions
+package com.mobileexam.tabingo.screens
 
-import androidx.compose.foundation.Image
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -24,102 +24,88 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.mobileexam.tabingo.data.charData
-import com.mobileexam.tabingo.model.CharModel
-import com.mobileexam.tabingo.ui.theme.TabingoTheme
+import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.mobileexam.tabingo.R
+import com.mobileexam.tabingo.data.Character
 
-// Composable function representing the main UI of the app
 @Composable
-fun RicknMortyApp() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // App title text
-        Text(
-            text = "Rick & Morty Characters",
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        )
-
-        // LazyColumn to efficiently display a list of characters
-        LazyColumn {
-            items(charData) { chars ->
-                CharacterList(chars) // Displays each character in a card format
-            }
+fun RickAndMortyApp(
+    characters: List<Character>,
+    navController: NavController,
+    modifier: Modifier = Modifier,
+) {
+    LazyColumn(modifier = modifier) {
+        items(items = characters, key = { character -> character.id }) { character ->
+            CharacterCard(character = character, navController = navController) // Pass the navController to each CharacterCard
         }
     }
 }
-
-// Composable function to display each character in a list with an expandable section
 @Composable
-private fun CharacterList(chars: CharModel) {
-    var expanded by remember { mutableStateOf(false) } // Tracks whether details are expanded
-
+fun CharacterCard(
+    character: Character,
+    navController: NavController,
+) {
+    var expanded by remember { mutableStateOf(false) }
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable { expanded = !expanded } // Toggles expansion on click
+            .clickable {navController.navigate("DetailsScreen/${character.id}")},
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+        Row (
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            AsyncImage(
+                model = ImageRequest.Builder(context = LocalContext.current).data(character.image).crossfade(true).build(),
+                contentDescription = "Character Photo",
+                modifier = Modifier
+                    .padding(end = 16.dp)
+                    .size(80.dp) // Adjusted size for better proportion
+                    .clip(RoundedCornerShape(8.dp)), // Adds rounded corners to the image
+                error = painterResource(R.drawable.ic_broken_image),
+                placeholder = painterResource(R.drawable.loading_img),
+            )
+            Column(
+                modifier = Modifier.padding(20.dp),verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // Displays the character's image
-                Image(
-                    painter = painterResource(id = chars.imageRes),
-                    contentDescription = null, // No need for description as it's decorative
-                    modifier = Modifier
-                        .padding(end = 16.dp)
-                        .size(80.dp) // Adjusted size for better proportion
-                        .clip(RoundedCornerShape(8.dp)), // Adds rounded corners to the image
+                Text(
+                    text = character.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold // Make text bold
                 )
-
-                // Displays the character's basic details
-                Column {
-                    Text(text = chars.name, style = MaterialTheme.typography.titleMedium)
-                    Text(text = chars.status, style = MaterialTheme.typography.bodyMedium)
-                    Text(text = chars.species, style = MaterialTheme.typography.bodyMedium)
-                    Text(text = chars.type, style = MaterialTheme.typography.bodyMedium)
-                }
+                Text(text = character.status, style = MaterialTheme.typography.bodyMedium)
+                Text(text = character.species, style = MaterialTheme.typography.bodyMedium)
+                Text(text = character.type, style = MaterialTheme.typography.bodyMedium)
             }
+        }
 
-            // Expandable section to show additional details
+
+        Column(
+            modifier = Modifier.animateContentSize(),
+        ) {
+
             Text(
                 text = "More Details...",
                 style = MaterialTheme.typography.labelLarge.copy(fontSize = 15.sp),
                 modifier = Modifier
-                    .padding(top = 10.dp) // Adds space above "More Details..."
-                    .clickable { expanded = !expanded } // Click to expand/collapse details
+                    .padding(top = 10.dp)
+                    .clickable { expanded = !expanded }
             )
-
-            // Displays extra information when expanded
-            if (expanded) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = chars.gender, style = MaterialTheme.typography.bodyMedium)
-                Text(text = chars.origin, style = MaterialTheme.typography.bodyMedium)
-                Text(text = chars.location, style = MaterialTheme.typography.bodyMedium)
-            }
         }
-    }
-}
+        if (expanded) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = character.origin.name, style = MaterialTheme.typography.bodyMedium)
+            Text(text = character.location.name, style = MaterialTheme.typography.bodyMedium)
+            Text(text = character.gender, style = MaterialTheme.typography.bodyMedium)
 
-@Preview(showBackground = true)
-@Composable
-fun MobileExamPreview() {
-    TabingoTheme {
-        RicknMortyApp()
+        }
     }
 }

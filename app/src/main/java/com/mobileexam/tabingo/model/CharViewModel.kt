@@ -1,6 +1,5 @@
 package com.mobileexam.tabingo.model
 
-import CharacterResponse
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,7 +9,8 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.mobileexam.tabingo.RickAndMortyApplication
+import com.mobileexam.tabingo.RickAndMortyApp
+import com.mobileexam.tabingo.data.CharacterResponse
 import com.mobileexam.tabingo.data.GetCharacters
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -20,11 +20,10 @@ sealed interface CharactersUiState {
     object Error : CharactersUiState
     object Loading : CharactersUiState
 }
-class CharactersViewModel(
+class CharViewModel(
     private val charactersRepository: GetCharacters
 ) : ViewModel() {
-    /** The mutable State that stores the status of the most recent request */
-    var charactersUiState: CharactersUiState by mutableStateOf(CharactersUiState.Loading)
+    var charUiState: CharactersUiState by mutableStateOf(CharactersUiState.Loading)
         private set
 
     init {
@@ -34,12 +33,11 @@ class CharactersViewModel(
     private fun getCharacters() {
         viewModelScope.launch {
             try {
-                charactersUiState = CharactersUiState.Success(
+                charUiState = CharactersUiState.Success(
                     charactersRepository.getCharacters()
                 )
             } catch (e: IOException) {
-                // Update the charactersUiState with the error state
-                charactersUiState = CharactersUiState.Error
+                charUiState = CharactersUiState.Error
             }
         }
     }
@@ -47,9 +45,9 @@ class CharactersViewModel(
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                val application = (this[APPLICATION_KEY] as RickAndMortyApplication)
+                val application = (this[APPLICATION_KEY] as RickAndMortyApp)
                 val charactersRepository = application.container.charactersRepository
-                CharactersViewModel(charactersRepository = charactersRepository)
+                CharViewModel(charactersRepository = charactersRepository)
             }
         }
     }
